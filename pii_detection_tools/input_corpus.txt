@@ -1,0 +1,4 @@
+Contact John Doe at john.doe@example.com or call (123) 456-7890.
+His SSN is 123-45-6789.
+Jane Smith lives in New York and works at Acme Corp.
+Email: jane.smith@company.org, Phone: +1-987-654-3210.

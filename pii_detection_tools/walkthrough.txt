@@ -1,0 +1,312 @@
+# PII Detection System - Code Walkthrough
+
+## Overview
+
+This Python application implements a multi-method PII (Personally Identifiable Information) detection system. It demonstrates several key software engineering patterns and integrates three different approaches to text analysis: regular expressions, spaCy NLP, and Microsoft's Presidio library.
+
+## Architecture Pattern
+
+The code follows the **Strategy Pattern** with a base class `PIIDetector` and multiple concrete implementations. This allows for easy extension and method comparison.
+
+## Dependencies and Imports
+
+```python
+import re
+import spacy
+from typing import List, Dict, Set
+import os
+from presidio_analyzer import AnalyzerEngine
+from presidio_analyzer.nlp_engine import NlpEngineProvider
+```
+
+- `re`: Python's regular expression library for pattern matching
+- `spacy`: Industrial-strength NLP library for named entity recognition
+- `typing`: Type hints for better code documentation and IDE support
+- `presidio_analyzer`: Microsoft's privacy engineering toolkit for PII detection
+
+## Base Class: PIIDetector
+
+```python
+class PIIDetector:
+    """Base class for PII detection methods."""
+    def detect(self, text: str) -> Set[str]:
+        raise NotImplementedError("Detect method must be implemented.")
+```
+
+This is an **abstract base class** that defines the interface contract. All concrete detectors must implement the `detect` method that:
+- Takes a string as input
+- Returns a `Set[str]` containing detected PII items
+- Using a set prevents duplicate findings
+
+## Strategy 1: RegexPIIDetector
+
+```python
+class RegexPIIDetector(PIIDetector):
+    def __init__(self):
+        self.patterns = {
+            "Email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            "Phone": r'\b(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b',
+            "SSN": r'\b\d{3}-\d{2}-\d{4}\b',
+            "Credit Card": r'\b(?:\d[ -]*?){13,16}\b',
+            "Passport": r'\b[A-Z0-9]{6,9}\b',
+            "Canadian SIN": r'\b\d{3}-\d{3}-\d{3}\b'
+        }
+```
+
+### Pattern Analysis:
+
+**Email Pattern**: `r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'`
+- `\b`: Word boundaries to ensure complete matches
+- `[A-Za-z0-9._%+-]+`: Username part (alphanumeric + special chars)
+- `@`: Literal @ symbol
+- `[A-Za-z0-9.-]+`: Domain name
+- `\.`: Literal dot (escaped)
+- `[A-Z|a-z]{2,}`: Top-level domain (2+ letters)
+
+**Phone Pattern**: `r'\b(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b'`
+- `(\+\d{1,3}[-.\s]?)?`: Optional country code
+- `\(?\d{3}\)?`: Area code (with optional parentheses)
+- `[-.\s]?`: Optional separators
+- Handles formats like: (555) 123-4567, +1-555-123-4567, 555.123.4567
+
+### Detection Logic:
+
+```python
+def detect(self, text: str) -> Set[str]:
+    findings = set()
+    for pii_type, pattern in self.patterns.items():
+        matches = re.findall(pattern, text)
+        for match in matches:
+            findings.add(f"{pii_type}: {match}")
+    return findings
+```
+
+- Iterates through each pattern type
+- Uses `re.findall()` to get all matches
+- Formats results as "Type: Value" strings
+- Returns a deduplicated set
+
+## Strategy 2: SpacyPIIDetector
+
+```python
+class SpacyPIIDetector(PIIDetector):
+    def __init__(self):
+        try:
+            self.nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            raise RuntimeError("spaCy model 'en_core_web_sm' not found...")
+```
+
+This detector uses spaCy's pre-trained NER (Named Entity Recognition) model. The error handling ensures the required model is installed.
+
+### Detection Process:
+
+```python
+def detect(self, text: str) -> Set[str]:
+    findings = set()
+    doc = self.nlp(text)
+    for ent in doc.ents:
+        if ent.label_ in ["PERSON", "GPE", "ORG"]:
+            findings.add(f"{ent.label_}: {ent.text}")
+    return findings
+```
+
+- `self.nlp(text)`: Processes text through spaCy pipeline
+- `doc.ents`: Accesses detected entities
+- Filters for specific entity types:
+  - `PERSON`: Person names
+  - `GPE`: Geopolitical entities (countries, cities, states)
+  - `ORG`: Organizations
+
+**Key Advantage**: Context-aware detection using machine learning models rather than rigid patterns.
+
+## Strategy 3: PresidioPIIDetector
+
+```python
+class PresidioPIIDetector(PIIDetector):
+    def __init__(self):
+        provider = NlpEngineProvider(nlp_configuration={
+            "nlp_engine_name": "spacy",
+            "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}]
+        })
+        self.analyzer = AnalyzerEngine(nlp_engine=provider.create_engine())
+```
+
+Presidio is Microsoft's privacy engineering toolkit. The initialization:
+1. Creates an NLP engine provider configured for spaCy
+2. Instantiates the analyzer with the NLP engine
+
+### Advanced Detection:
+
+```python
+def detect(self, text: str) -> Set[str]:
+    findings = set()
+    results = self.analyzer.analyze(
+        text=text, 
+        entities=["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD", "US_SSN", "US_PASSPORT", "CA_SIN"], 
+        language="en"
+    )
+    for result in results:
+        findings.add(f"{result.entity_type}: {text[result.start:result.end]}")
+    return findings
+```
+
+- `analyzer.analyze()`: Runs comprehensive PII analysis
+- Specifies exact entity types to detect
+- `result.start:result.end`: Extracts text using character positions
+- Combines rule-based and ML approaches for higher accuracy
+
+## Manager Class: PIIDetectionManager
+
+This class implements the **Facade Pattern**, providing a simplified interface to the complex subsystem.
+
+### Composition over Inheritance:
+
+```python
+def __init__(self):
+    self.detectors: Dict[str, PIIDetector] = {
+        "regex": RegexPIIDetector(),
+        "spacy": SpacyPIIDetector(),
+        "presidio": PresidioPIIDetector()
+    }
+    self.available_methods = list(self.detectors.keys())
+```
+
+- Maintains a dictionary of detector instances
+- Uses composition to combine different strategies
+- Enables dynamic method selection
+
+### User Interaction:
+
+```python
+def select_methods(self) -> List[str]:
+    print("\nSelect PII Detection Methods (like checkboxes):")
+    for i, method in enumerate(self.available_methods, 1):
+        print(f"{i}. {method.capitalize()}")
+    # ... input validation logic
+```
+
+**Interactive Features**:
+- Checkbox-style selection interface
+- Input validation with error handling
+- Support for "all" keyword
+- Robust parsing of space-separated numbers
+
+### File Operations:
+
+```python
+def read_corpus(self, file_path: str) -> str:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        return ""
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return ""
+```
+
+**Best Practices Demonstrated**:
+- Context manager for file handling
+- Explicit UTF-8 encoding
+- Comprehensive exception handling
+- Graceful error recovery
+
+### Orchestration Method:
+
+```python
+def detect_pii(self, text: str, methods: List[str]) -> Dict[str, Set[str]]:
+    results = {}
+    for method in methods:
+        if method in self.detectors:
+            try:
+                findings = self.detectors[method].detect(text)
+                results[method] = findings
+            except Exception as e:
+                print(f"Error with {method} detector: {e}")
+                results[method] = set()
+    return results
+```
+
+This method demonstrates:
+- **Polymorphism**: Calls `detect()` on different detector types
+- **Error isolation**: One detector failure doesn't crash the system
+- **Consistent interface**: Returns uniform data structure
+
+## Main Application Flow
+
+```python
+def main():
+    # Initialize the PII detection manager
+    try:
+        manager = PIIDetectionManager()
+    except Exception as e:
+        print(f"Error initializing detectors: {e}")
+        return
+
+    # File input
+    corpus_file = "input_corpus.txt"
+    corpus = manager.read_corpus(corpus_file)
+    if not corpus:
+        print("Exiting due to corpus read error.")
+        return
+
+    # Method selection
+    selected_methods = manager.select_methods()
+    if not selected_methods:
+        print("No methods selected. Exiting.")
+        return
+
+    # Analysis and output
+    results = manager.detect_pii(corpus, selected_methods)
+    manager.display_results(results)
+```
+
+### Program Flow Analysis:
+
+1. **Initialization**: Creates manager with error handling
+2. **Input**: Reads corpus file with validation
+3. **Configuration**: Interactive method selection
+4. **Processing**: Runs selected detectors on text
+5. **Output**: Displays formatted results
+
+## Key Software Engineering Principles
+
+### 1. **Single Responsibility Principle**
+Each class has one clear purpose:
+- `RegexPIIDetector`: Pattern-based detection
+- `SpacyPIIDetector`: NLP-based detection
+- `PresidioPIIDetector`: Advanced ML detection
+- `PIIDetectionManager`: User interaction and orchestration
+
+### 2. **Open/Closed Principle**
+The system is open for extension (new detectors) but closed for modification. Adding a new detection method requires only:
+- Creating a new class inheriting from `PIIDetector`
+- Adding it to the manager's detector dictionary
+
+### 3. **Dependency Inversion**
+High-level modules (manager) don't depend on low-level modules (specific detectors). Both depend on abstractions (the `PIIDetector` interface).
+
+### 4. **Error Handling Strategy**
+- **Fail-fast**: Immediate termination for critical errors
+- **Graceful degradation**: Continue with reduced functionality when possible
+- **User feedback**: Clear error messages for troubleshooting
+
+## Practical Applications
+
+This architecture is particularly useful for:
+- **Data privacy compliance** (GDPR, CCPA)
+- **Document sanitization** before sharing
+- **Security auditing** of text data
+- **Research on PII detection accuracy** across methods
+
+## Potential Extensions
+
+1. **Custom Patterns**: Allow users to add regex patterns
+2. **Confidence Scoring**: Return probability scores with detections
+3. **Batch Processing**: Handle multiple files
+4. **Output Formats**: JSON, CSV export options
+5. **Real-time Detection**: Stream processing capabilities
+
+This code effectively demonstrates how to build a modular, extensible system that combines multiple approaches to solve a complex problem while maintaining clean separation of concerns.
