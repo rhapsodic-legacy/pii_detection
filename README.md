@@ -9,10 +9,15 @@ This toolkit mirrors the approach used to screen the training corpus for the BLO
 
 ##### Repository Contents
 The repository contains a single folder, pii_detection_tools, with the following five files:
+
 pii_detection.py: The main program that executes the PII detection pipeline.
+
 input_corpus.txt: A sample text file containing PII for testing the toolkit.
+
 prerequisites.txt: A list of dependencies required to run the program.
+
 walkthrough.txt: A detailed guide explaining the code's structure, functionality, and design rationale.
+
 BLOOM_LLM_history.txt: A detail rich memoire of the largest LLM of its day, as well as the first international open source LLM. 
 
 
