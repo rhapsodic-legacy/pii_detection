@@ -1,0 +1,107 @@
+# BLOOM LLM - Core Information
+
+## Overview
+**Name:** BLOOM (BigScience Large Open-science Open-access Multilingual Language Model)
+
+**Developers:** BigScience collaborative initiative led by Hugging Face
+- 1,000+ researchers from 70+ countries
+- 250+ institutions (academic, industrial, independent)
+
+**Purpose:** Create open-source, transparent, multilingual LLM for research and democratizing AI access
+
+**Release Date:** July 6, 2022 (training: March 11 - July 6, 2022)
+
+## Technical Specifications
+**Architecture:** Transformer-based, autoregressive (modified Megatron-LM GPT2)
+
+**Parameters:** 176 billion (slightly larger than GPT-3's 175 billion)
+
+**Vocabulary:** 250,880 tokens supporting diverse languages and programming languages
+
+**Objective Function:** Cross Entropy with mean reduction
+
+## Training Details
+**Training Data:** ROOTS corpus
+- 1.6 terabytes of text (~366 billion tokens)
+- 59 languages total:
+  - 46 natural languages (English, Spanish, French, Arabic, 20 African languages)
+  - 13 programming languages
+- Sources: 38% OSCAR web corpus plus curated literature, scientific articles, news
+
+**Infrastructure:** Jean Zay Public Supercomputer, France
+- 384 NVIDIA A100 80GB GPUs
+- Supported by GENCI, IDRIS (CNRS), French government
+
+**Training Duration:** 117 days
+
+**Cost:** $2-5 million estimated (cloud computing equivalent)
+
+**Environmental Impact:**
+- Powered mostly by nuclear energy
+- Heat reused for campus housing
+- CO2 emissions: 24,700,000 kg (pre-training)
+
+## Capabilities
+**Languages:** 46 natural languages + 13 programming languages
+- First 100B+ parameter model for Spanish, French, Arabic
+
+**Tasks:**
+- Zero-shot/few-shot learning
+- Text generation and summarization
+- Translation and question answering
+- Information extraction
+- Code generation
+
+**Performance:** Competitive with GPT-3 in accuracy and toxicity levels
+
+## Access and Licensing
+**Availability:** Open source via Hugging Face
+- Requires transformers and accelerate libraries
+- Includes intermediate checkpoints and optimizer states
+
+**License:** Responsible AI License by BigScience
+- Allows broad research use
+- Restricts high-stakes applications (biomedical, legal, financial)
+
+**Inference Options:**
+- Hugging Face web app
+- Inference API (Google TPU cloud, FLAX version)
+- Direct deployment (requires ~8 A100 GPUs or 227 GB compressed storage)
+
+## Data Governance and Ethics
+**Data Curation:** Fully documented ROOTS corpus addressing legal/licensing issues
+
+**Ethical Framework:**
+- Included ethicists, legal scholars, social scientists
+- Addressed biases, privacy, societal impacts
+- Extensive PII detection tools used for corpus screening
+
+**Limitations:**
+- Not for critical decision-making or high-stakes settings
+- May generate toxic/biased content requiring mitigation
+
+## Significance and Impact
+**Open Science Achievement:**
+- Landmark transparent AI model (code, data, training details public)
+- Contrasts with proprietary models like GPT-3
+
+**Community Collaboration:**
+- Global diverse team including African researchers
+- Focus on underrepresented languages and inclusivity
+
+**Research Democratization:**
+- Enables researchers, nonprofits, smaller organizations access to 100B+ parameter model
+- Reduces dependence on Big Tech AI resources
+
+## Challenges
+**Resource Requirements:**
+- Significant hardware needs (227 GB compressed model)
+- Hundreds of GB VRAM for full deployment
+- API access costs ~$40/hour
+
+**Ongoing Issues:**
+- Inherent biases and potential toxic outputs
+- High computational costs
+- Smaller, fine-tuned models may be more practical for many use cases
+
+---
