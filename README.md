@@ -7,7 +7,7 @@ This repository provides a modular Personally Identifiable Information (PII) det
 ##### Importance
 This toolkit mirrors the approach used to screen the training corpus for the BLOOM large language model, a 176-billion-parameter model developed by Hugging Face and BigScience. By identifying and mitigating PII in training data, this tool helps ensure privacy compliance and reduces the risk of sensitive information leakage in large-scale language models.
 
-##### Repository Contents 
+##### Repository Contents  
 The repository contains a single folder, pii_detection_tools, with the following five files:
 
 pii_detection.py: The main program that executes the PII detection pipeline.
