@@ -5,7 +5,7 @@
 This repository provides a modular Personally Identifiable Information (PII) detection toolkit designed to identify and flag sensitive data in text. The toolkit supports multiple detection methods, including regular expressions (regex), spaCy, and Presidio, which can be used in any combination for flexible and robust PII detection.
 
 ##### Importance
-This toolkit mirrors the approach used to screen the training corpus for the BLOOM large language model, a 176-billion-parameter model developed by Hugging Face and BigScience. By identifying and mitigating PII in training data, this tool helps ensure privacy compliance and reduces the risk of sensitive information leakage in large-scale language models.
+This toolkit mirrors the approach used to screen the training corpus for the BLOOM large language model, a 176-billion-parameter model developed by Hugging Face and BigScience. By identifying and mitigating PII in training data, this tool helps ensure privacy compliance and reduces the risk of sensitive information leakage in large-scale language models. 
 
 ##### Repository Contents  
 The repository contains a single folder, pii_detection_tools, with the following five files:
