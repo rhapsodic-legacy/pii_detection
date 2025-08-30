@@ -19,7 +19,7 @@ prerequisites.txt: A list of dependencies required to run the program.
 walkthrough.txt: A detailed guide explaining the code's structure, functionality, and design rationale.
 
 BLOOM_LLM_history.txt: A detail rich memoire of the largest LLM of its day, as well as the first international open source LLM. 
-
+ 
 
 ##### MIT License
 Copyright (c) 2025 rhapsodic-legacy
