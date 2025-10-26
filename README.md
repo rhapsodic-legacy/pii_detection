@@ -13,7 +13,7 @@ The repository contains a single folder, pii_detection_tools, with the following
 pii_detection.py: The main program that executes the PII detection pipeline.       
       
 input_corpus.txt: A sample text file containing PII for testing the toolkit.   
-     
+      
 prerequisites.txt: A list of dependencies required to run the program.           
  
 walkthrough.txt: A detailed guide explaining the code's structure, functionality, and design rationale.  
