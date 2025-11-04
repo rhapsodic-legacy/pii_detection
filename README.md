@@ -9,7 +9,7 @@ This toolkit mirrors the approach used to screen the training corpus for the BLO
    
 ##### Repository Contents   
 The repository contains a single folder, pii_detection_tools, with the following five files:          
-        
+         
 pii_detection.py: The main program that executes the PII detection pipeline.       
       
 input_corpus.txt: A sample text file containing PII for testing the toolkit.   
